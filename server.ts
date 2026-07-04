@@ -38,13 +38,20 @@ if (fs.existsSync(configPath)) {
 const SYSTEM_TOKEN = process.env.SYSTEM_TOKEN || 'shopez_secure_backend_system_token_2026';
 
 // Initialize Gemini API
-const geminiApiKey = process.env.GEMINI_API_KEY;
+const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
 let ai: GoogleGenAI | null = null;
 
-if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
+if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApiKey !== '') {
   try {
-    ai = new GoogleGenAI({ apiKey: geminiApiKey });
-    console.log('Gemini API initialized successfully in backend.');
+    ai = new GoogleGenAI({ 
+      apiKey: geminiApiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+    console.log('Gemini API initialized successfully in backend with aistudio-build telemetry.');
   } catch (error) {
     console.error('Failed to initialize Gemini API:', error);
   }
@@ -293,16 +300,36 @@ Rules:
       parts: m.parts.map((p: any) => ({ text: p.text || p }))
     }));
 
-    // Call Gemini 3.5-flash
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
-      contents: contents,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.7,
-        maxOutputTokens: 1000,
+    // Call Gemini with robust fallback options
+    let response;
+    try {
+      console.log('Attempting AI generateContent with model: gemini-3.5-flash');
+      response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: contents,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        }
+      });
+    } catch (primaryError: any) {
+      console.warn('Primary model gemini-3.5-flash failed. Trying fallback to gemini-2.5-flash. Error details:', primaryError);
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: contents,
+          config: {
+            systemInstruction: systemInstruction,
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+          }
+        });
+      } catch (secondaryError: any) {
+        console.error('All Gemini model calls failed:', secondaryError);
+        throw secondaryError;
       }
-    });
+    }
 
     const responseText = response.text;
     res.json({ text: responseText });

@@ -76,15 +76,18 @@ ${currentProductContext ? `I see you are currently looking at our exquisite **"$
       } else {
         throw new Error(data.error || 'Failed to generate response.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Gemini API communication failed:', error);
+      const errMsg = error?.message || 'Error occurred while contacting the AI Assistant.';
       setMessages((prev) => [
         ...prev,
         {
           role: 'model',
           parts: [
             {
-              text: "Apologies, patron! A brief disturbance in our communications occurred. Our weavers are hard at work and I was temporarily disconnected. Please try again in a moment."
+              text: `Apologies, patron! A brief disturbance in our communications occurred: "${errMsg}".
+
+Please ensure your GEMINI_API_KEY is properly set in the Secrets/Settings panel if you are running in production.`
             }
           ]
         }
