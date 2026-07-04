@@ -12,7 +12,7 @@ import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, query, where
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Middleware for parsing JSON requests
 app.use(express.json());
@@ -316,7 +316,10 @@ Rules:
 // --- Express + Vite Server Integration ---
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  const distPath = path.join(process.cwd(), 'dist');
+  const hasBuiltAssets = fs.existsSync(path.join(distPath, 'index.html'));
+
+  if (process.env.NODE_ENV !== 'production' && !hasBuiltAssets) {
     // Vite dev mode
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -326,7 +329,6 @@ async function startServer() {
     console.log('Vite middleware loaded in Express dev mode.');
   } else {
     // Production static serving
-    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));
