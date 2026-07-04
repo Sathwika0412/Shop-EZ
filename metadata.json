@@ -1,0 +1,6 @@
+{
+  "name": "ShopEZ",
+  "description": "ShopEZ is a full-stack artisanal Indian e-commerce bazaar connecting legacy handlooms, pottery, metalware and Vedic wellness directly with patrons, featuring secure checkout, real-time seller analytics, and a Gemini-powered conversational storytelling assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "product": {
+      "title": "Product",
+      "description": "An artisanal product for sale",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Product name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Product description"
+        },
+        "artisanStory": {
+          "type": "string",
+          "description": "Backstory of the Indian artisan"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price in Indian Rupees (INR)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Product category"
+        },
+        "image": {
+          "type": "string",
+          "description": "Product image URL"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Product rating out of 5"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Discount percentage"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Available stock quantity"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["name", "description", "price", "category", "image"]
+    },
+    "order": {
+      "title": "Order",
+      "description": "A customer order for products",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the purchasing user"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total purchase amount in INR"
+        },
+        "status": {
+          "type": "string",
+          "description": "Order fulfillment status (Pending, Dispatched, Delivered)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Order placement timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["userId", "totalAmount", "status", "createdAt"]
+    },
+    "review": {
+      "title": "Review",
+      "description": "Customer feedback on products",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reviewer's auth UID"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Display name of reviewer"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Review rating out of 5"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Review text"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Review submission timestamp"
+        }
+      },
+      "required": ["userId", "userName", "rating", "comment", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "The product catalog collection"
+    },
+    "/products/{productId}/reviews/{reviewId}": {
+      "schema": "review",
+      "description": "Customer reviews for a specific product"
+    },
+    "/orders/{orderId}": {
+      "schema": "order",
+      "description": "All customer purchase orders"
+    }
+  }
+}

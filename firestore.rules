@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny catch-all (Rule 1 of safety net)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && (
+        request.auth.token.email_verified == true || 
+        request.auth.token.firebase.sign_in_provider == 'anonymous'
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Helper to reference existing data
+    function existing() {
+      return resource.data;
+    }
+
+    function isSystemWrite(data) {
+      return 'systemToken' in data && data.systemToken == 'shopez_secure_backend_system_token_2026';
+    }
+
+    // --- Entity Validations ---
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'description', 'price', 'category', 'image']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 2000 &&
+             data.price is number && data.price > 0 && data.price <= 1000000 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 50 &&
+             data.image is string && data.image.size() > 0 && data.image.size() <= 500 &&
+             (!data.keys().contains('artisanStory') || (data.artisanStory is string && data.artisanStory.size() <= 2000)) &&
+             (!data.keys().contains('rating') || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
+             (!data.keys().contains('discount') || (data.discount is number && data.discount >= 0 && data.discount <= 100)) &&
+             (!data.keys().contains('stock') || (data.stock is number && data.stock >= 0));
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'totalAmount', 'status', 'createdAt', 'items', 'shippingAddress']) &&
+             data.userId == request.auth.uid &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.status in ['Pending', 'Dispatched', 'Delivered', 'Cancelled'] &&
+             data.createdAt is timestamp &&
+             data.items is list && data.items.size() > 0 &&
+             data.shippingAddress is map;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['userId', 'userName', 'rating', 'comment', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 1000 &&
+             data.createdAt is timestamp;
+    }
+
+    // --- Collection Matches ---
+
+    // 1. Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      allow write: if false; // Only manageable server-side or via console
+    }
+
+    // 2. Products Collection
+    match /products/{productId} {
+      allow read: if true; // Publicly readable for all shop visitors
+      allow create: if (isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == request.time) || (isSystemWrite(incoming()) && isValidId(productId));
+      allow update: if (isAdmin() && isValidProduct(incoming())) || isSystemWrite(incoming());
+      allow delete: if isAdmin() || isSystemWrite(existing());
+
+      // Subcollection: Product Reviews
+      match /reviews/{reviewId} {
+        allow read: if true; // Product reviews are public
+        allow create: if isEmailVerified() && isValidId(productId) && isValidId(reviewId) && isValidReview(incoming()) && incoming().createdAt == request.time;
+        allow update: if isEmailVerified() && existing().userId == request.auth.uid && isValidReview(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['comment', 'rating']);
+        allow delete: if isEmailVerified() && (existing().userId == request.auth.uid || isAdmin());
+      }
+    }
+
+    // 3. Orders Collection
+    match /orders/{orderId} {
+      allow read, list: if 'systemToken' in resource.data && resource.data.systemToken == 'shopez_secure_backend_system_token_2026';
+      allow create: if (isSystemWrite(incoming()) && isValidId(orderId));
+      allow update: if isSystemWrite(incoming());
+      allow delete: if 'systemToken' in resource.data && resource.data.systemToken == 'shopez_secure_backend_system_token_2026';
+    }
+  }
+}
