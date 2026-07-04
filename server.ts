@@ -293,9 +293,9 @@ Rules:
       parts: m.parts.map((p: any) => ({ text: p.text || p }))
     }));
 
-    // Call Gemini 2.5-flash
+    // Call Gemini 3.5-flash
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       contents: contents,
       config: {
         systemInstruction: systemInstruction,

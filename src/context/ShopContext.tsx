@@ -133,7 +133,17 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await signInAnonymously(auth);
     } catch (error) {
-      console.error('Anonymous Sign-In failed:', error);
+      console.warn('Anonymous Sign-In failed, falling back to Simulated Guest Session:', error);
+      // Fallback simulated guest user for iframe environment compatibility
+      const simulatedGuest = {
+        uid: `simulated-guest-${Date.now()}`,
+        displayName: 'Guest Artisan Patron',
+        email: 'guest@shopez.com',
+        isAnonymous: true,
+        photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+        emailVerified: false,
+      } as any;
+      setUser(simulatedGuest);
     } finally {
       setAuthLoading(false);
     }
@@ -183,8 +193,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 7. Get User Orders from Express Backend API
   const fetchUserOrders = async () => {
-    if (!auth.currentUser) return;
-    await fetchUserOrdersWithId(auth.currentUser.uid);
+    const currentUserId = user?.uid || auth.currentUser?.uid;
+    if (!currentUserId) return;
+    await fetchUserOrdersWithId(currentUserId);
   };
 
   // 8. Get All Orders for Admin Dashboard
@@ -233,7 +244,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 10. Checkout Operation via Express Backend API
   const checkout = async (shippingAddress: ShippingAddress, paymentMethod: string): Promise<Order> => {
-    if (!auth.currentUser) {
+    const currentUserId = user?.uid || auth.currentUser?.uid;
+    if (!currentUserId) {
       throw new Error('You must be logged in to checkout.');
     }
 
@@ -251,7 +263,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const orderId = `order-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newOrder: Order = {
       id: orderId,
-      userId: auth.currentUser.uid,
+      userId: currentUserId,
       items: orderItems,
       totalAmount: finalTotal,
       shippingAddress,
@@ -276,9 +288,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setDiscountPercent(0);
       
       // Re-fetch orders & products to update stocks
-      if (auth.currentUser) {
-        await fetchUserOrdersWithId(auth.currentUser.uid);
-      }
+      await fetchUserOrdersWithId(currentUserId);
       await fetchProducts();
 
       return data.order || newOrder;
