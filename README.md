@@ -7,7 +7,8 @@ The Artisan AI Advisor acts as an intelligent shopping assistant that helps user
 
 By integrating AI into the shopping workflow, ShopEZ delivers a smarter, more engaging, and user-centric experience while demonstrating practical full-stack development skills and AI integration.
 
-✨ Key Features
+✨ Key Features 
+
 🤖 Artisan AI Advisor – AI-powered shopping assistant for personalized product guidance and recommendations.
 🔐 Secure User Authentication & Authorization
 🛍️ Product Browsing with Categories
