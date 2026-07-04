@@ -1,20 +1,50 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+🛒 ShopEZ – AI-Powered Full-Stack E-Commerce Platform
+📌 About the Project
 
-# Run and deploy your AI Studio app
+ShopEZ is a modern full-stack e-commerce application built using the MERN stack, designed to provide a seamless, secure, and interactive online shopping experience. Beyond standard e-commerce functionality, ShopEZ introduces an innovative feature called Artisan AI Advisor, making it more than just a conventional online shopping platform.
 
-This contains everything you need to run your app locally.
+The Artisan AI Advisor acts as an intelligent shopping assistant that helps users discover products, receive personalized recommendations, answer shopping-related questions, and improve their overall buying experience through AI-driven conversations.
 
-View your app in AI Studio: https://ai.studio/apps/788bb996-27f4-47b6-b68f-5703a8fc86b6
+By integrating AI into the shopping workflow, ShopEZ delivers a smarter, more engaging, and user-centric experience while demonstrating practical full-stack development skills and AI integration.
 
-## Run Locally
+✨ Key Features
+🤖 Artisan AI Advisor – AI-powered shopping assistant for personalized product guidance and recommendations.
+🔐 Secure User Authentication & Authorization
+🛍️ Product Browsing with Categories
+🔍 Smart Search & Filtering
+🛒 Dynamic Shopping Cart
+❤️ Wishlist Management
+📦 Order Placement & Tracking
+👤 User Profile Management
+📱 Fully Responsive Design
+⚡ Fast and Interactive User Interface
+🔄 RESTful API Integration
+💡 What Makes ShopEZ Unique?
 
-**Prerequisites:**  Node.js
+Unlike traditional e-commerce applications, ShopEZ incorporates an Artisan AI Advisor, an intelligent assistant designed to simplify product discovery and assist users throughout their shopping journey. This feature enhances user engagement by providing contextual recommendations and interactive support, making the shopping experience more personalized and efficient.
 
+🛠️ Tech Stack
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Frontend
+
+React.js
+HTML5
+CSS3
+JavaScript
+
+Backend
+
+Node.js
+Express.js
+
+Database
+
+MongoDB
+
+AI Integration
+
+Google Gemini API
+
+Version Control
+
+Git & GitHub
