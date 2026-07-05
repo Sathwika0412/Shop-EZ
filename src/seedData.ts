@@ -183,7 +183,7 @@ export const SEED_PRODUCTS: Product[] = [
     artisanStory: 'Engraved by artisan families in Santiniketan, West Bengal. This artistic leather work utilizes special embossing dies and hand-painted spirit dyes to achieve rich, multi-toned caramel shading.',
     price: 1899,
     category: 'Accessories',
-    image: 'https://images.unsplash.com/photo-1627124793180-26a141009817?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1601924582970-d24f028419ae?auto=format&fit=crop&q=80&w=800',
     rating: 4.6,
     discount: 0,
     stock: 60
@@ -235,7 +235,7 @@ export const SEED_PRODUCTS: Product[] = [
     artisanStory: 'Slowly brewed in copper vessels by women-led farm cooperatives in Kannauj, Uttar Pradesh. Sourced with certified organic ingredients to support rural farming biodiversity.',
     price: 2999,
     category: 'Skincare',
-    image: 'https://images.unsplash.com/photo-1608248597481-496100c80836?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=800',
     rating: 4.9,
     discount: 12,
     stock: 35
@@ -287,7 +287,7 @@ export const SEED_PRODUCTS: Product[] = [
     artisanStory: 'Custom fitted with beautifully carved reclaimed rosewood handles and control knobs by heritage cabinetmakers in Saharanpur, Uttar Pradesh.',
     price: 22499,
     category: 'Home Appliances',
-    image: 'https://images.unsplash.com/photo-1517256064527-09c53b2d0bc6?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
     rating: 4.9,
     discount: 15,
     stock: 6

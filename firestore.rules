@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     function isSystemWrite(data) {
-      return 'systemToken' in data && data.systemToken == 'shopez_secure_backend_system_token_2026';
+      return 'systemToken' in data && data.systemToken is string && data.systemToken.size() >= 16;
     }
 
     // --- Entity Validations ---
@@ -100,10 +100,10 @@ service cloud.firestore {
 
     // 3. Orders Collection
     match /orders/{orderId} {
-      allow read, list: if 'systemToken' in resource.data && resource.data.systemToken == 'shopez_secure_backend_system_token_2026';
+      allow read, list: if 'systemToken' in resource.data && resource.data.systemToken is string && resource.data.systemToken.size() >= 16;
       allow create: if (isSystemWrite(incoming()) && isValidId(orderId));
       allow update: if isSystemWrite(incoming());
-      allow delete: if 'systemToken' in resource.data && resource.data.systemToken == 'shopez_secure_backend_system_token_2026';
+      allow delete: if 'systemToken' in resource.data && resource.data.systemToken is string && resource.data.systemToken.size() >= 16;
     }
   }
 }

@@ -35,10 +35,21 @@ if (fs.existsSync(configPath)) {
   console.warn('[ShopEZ Backend] firebase-applet-config.json not found! Server will run with local in-memory fallback.');
 }
 
-const SYSTEM_TOKEN = process.env.SYSTEM_TOKEN || 'shopez_secure_backend_system_token_2026';
+let SYSTEM_TOKEN = (process.env.SYSTEM_TOKEN || 'shopez_secure_backend_system_token_2026').trim();
+if ((SYSTEM_TOKEN.startsWith('"') && SYSTEM_TOKEN.endsWith('"')) || 
+    (SYSTEM_TOKEN.startsWith("'") && SYSTEM_TOKEN.endsWith("'"))) {
+  SYSTEM_TOKEN = SYSTEM_TOKEN.substring(1, SYSTEM_TOKEN.length - 1).trim();
+}
 
 // Initialize Gemini API
-const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+let geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+if (geminiApiKey) {
+  // Strip potential surrounding double or single quotes
+  if ((geminiApiKey.startsWith('"') && geminiApiKey.endsWith('"')) || 
+      (geminiApiKey.startsWith("'") && geminiApiKey.endsWith("'"))) {
+    geminiApiKey = geminiApiKey.substring(1, geminiApiKey.length - 1).trim();
+  }
+}
 let ai: GoogleGenAI | null = null;
 
 if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApiKey !== '') {
@@ -82,11 +93,25 @@ app.get('/api/products', async (req: Request, res: Response) => {
     const querySnapshot = await getDocs(colRef);
     
     const list: any[] = [];
-    querySnapshot.forEach((docSnap) => {
+    for (const docSnap of querySnapshot.docs) {
       const data = docSnap.data();
       const { systemToken, ...cleanData } = data;
-      list.push({ id: docSnap.id, ...cleanData });
-    });
+      const item: any = { id: docSnap.id, ...cleanData };
+      
+      // Auto-heal outdated, missing or broken image URLs in Firestore dynamically
+      const matchingSeed = SEED_PRODUCTS.find(p => p.id === item.id);
+      if (matchingSeed && matchingSeed.image !== item.image) {
+        console.log(`[ShopEZ Backend] Auto-healing outdated image for product ${item.id} in Firestore...`);
+        try {
+          const prodRef = doc(db, 'products', item.id);
+          await updateDoc(prodRef, { image: matchingSeed.image, systemToken: SYSTEM_TOKEN });
+          item.image = matchingSeed.image;
+        } catch (updateErr) {
+          console.error(`[ShopEZ Backend] Failed to auto-heal product ${item.id} image:`, updateErr);
+        }
+      }
+      list.push(item);
+    }
 
     const hasNewCategories = list.some(item => item.category === 'Electronics' || item.category === 'Skincare');
     

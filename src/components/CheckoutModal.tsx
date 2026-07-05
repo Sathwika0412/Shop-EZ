@@ -71,7 +71,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setCompletedOrder(order);
     } catch (error: any) {
       console.error('Checkout error:', error);
-      setErrorMessage('Checkout failed. Please confirm database setup and rules are deployed correctly.');
+      setErrorMessage(`Checkout failed: ${error.message || 'Please confirm database setup and rules are deployed correctly.'}`);
     } finally {
       setIsSubmitting(false);
     }
