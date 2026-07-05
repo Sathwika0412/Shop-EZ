@@ -276,15 +276,8 @@ This project demonstrates practical knowledge of:
 
 ---
 
-# 👩‍💻 Developer
 
-## Sathwika Aluru
 
-**B.Tech Student | Frontend Developer | AI Enthusiast | Prompt Engineering Learner**
-
-Passionate about building modern web applications that combine Artificial Intelligence with intuitive user experiences.
-
----
 
 # 🤝 Contributing
 
