@@ -5,6 +5,9 @@ import {
   GoogleAuthProvider, 
   signOut, 
   signInAnonymously,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   User as FirebaseUser 
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -25,6 +28,9 @@ interface ShopContextType {
   checkout: (shippingAddress: ShippingAddress, paymentMethod: string) => Promise<Order>;
   loginWithGoogle: () => Promise<void>;
   loginAnonymously: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+  loginWithSimulatedRole: (role: 'patron' | 'artisan' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   orders: Order[];
   ordersLoading: boolean;
@@ -52,18 +58,23 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 1. Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      setAuthLoading(false);
-      
       if (firebaseUser) {
+        setUser(firebaseUser);
         const isEmailAdmin = firebaseUser.email?.includes('admin') || firebaseUser.email === 'sathwikaaluru2005@gmail.com';
         setIsAdminUser(isEmailAdmin || localStorage.getItem('shopez_admin_override') === 'true');
         // Fetch customer's orders from the backend API
         fetchUserOrdersWithId(firebaseUser.uid);
       } else {
-        setIsAdminUser(false);
-        setOrders([]);
+        setUser((prev) => {
+          if (prev && prev.uid.startsWith('simulated-')) {
+            return prev; // Preserve simulated role user across state changes
+          }
+          setIsAdminUser(false);
+          setOrders([]);
+          return null;
+        });
       }
+      setAuthLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -144,6 +155,83 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailVerified: false,
       } as any;
       setUser(simulatedGuest);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // 4.1 Authenticate with Email & Password (Real Firebase Auth)
+  const loginWithEmail = async (email: string, password: string) => {
+    setAuthLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error('Email sign-in failed:', error);
+      throw error;
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // 4.2 Register with Email & Password & display name (Real Firebase Auth)
+  const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+    setAuthLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName });
+      // Trigger a profile refresh in React state
+      setUser({ ...userCredential.user, displayName } as any);
+    } catch (error) {
+      console.error('Email registration failed:', error);
+      throw error;
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // 4.3 Log In with Simulated Test Account (For immediate, zero-fuss preview & testing)
+  const loginWithSimulatedRole = async (role: 'patron' | 'artisan' | 'admin') => {
+    setAuthLoading(true);
+    try {
+      let simulatedUser: any = null;
+      if (role === 'patron') {
+        simulatedUser = {
+          uid: 'simulated-patron-101',
+          displayName: 'Sita Devi (Patron)',
+          email: 'sita.devi@shopez.com',
+          isAnonymous: false,
+          photoURL: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100',
+          emailVerified: true,
+        };
+        setIsAdminUser(false);
+        localStorage.setItem('shopez_admin_override', 'false');
+      } else if (role === 'artisan') {
+        simulatedUser = {
+          uid: 'simulated-artisan-202',
+          displayName: 'Ramchandra (Artisan Seller)',
+          email: 'ram.pottery@shopez.com',
+          isAnonymous: false,
+          photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
+          emailVerified: true,
+        };
+        setIsAdminUser(false);
+        localStorage.setItem('shopez_admin_override', 'false');
+      } else {
+        simulatedUser = {
+          uid: 'simulated-admin-303',
+          displayName: 'Curator Admin',
+          email: 'curator@shopez.com',
+          isAnonymous: false,
+          photoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=100',
+          emailVerified: true,
+        };
+        setIsAdminUser(true);
+        localStorage.setItem('shopez_admin_override', 'true');
+      }
+      setUser(simulatedUser);
+      await fetchUserOrdersWithId(simulatedUser.uid);
+    } catch (error) {
+      console.error('Simulated login failed:', error);
     } finally {
       setAuthLoading(false);
     }
@@ -315,6 +403,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         checkout,
         loginWithGoogle,
         loginAnonymously,
+        loginWithEmail,
+        signUpWithEmail,
+        loginWithSimulatedRole,
         logout,
         orders,
         ordersLoading,

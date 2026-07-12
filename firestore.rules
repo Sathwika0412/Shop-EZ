@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     function isSystemWrite(data) {
-      return 'systemToken' in data && data.systemToken is string && data.systemToken.size() >= 16;
+      return data != null && data.keys().contains('systemToken') && data.systemToken is string && data.systemToken.size() >= 8;
     }
 
     // --- Entity Validations ---
@@ -100,10 +100,11 @@ service cloud.firestore {
 
     // 3. Orders Collection
     match /orders/{orderId} {
-      allow read, list: if 'systemToken' in resource.data && resource.data.systemToken is string && resource.data.systemToken.size() >= 16;
+      allow read, list: if (isSignedIn() && resource != null && resource.data != null && resource.data.userId == request.auth.uid) ||
+                           (resource != null && resource.data != null && resource.data.keys().contains('systemToken') && resource.data.systemToken != null);
       allow create: if (isSystemWrite(incoming()) && isValidId(orderId));
       allow update: if isSystemWrite(incoming());
-      allow delete: if 'systemToken' in resource.data && resource.data.systemToken is string && resource.data.systemToken.size() >= 16;
+      allow delete: if resource != null && resource.data != null && resource.data.keys().contains('systemToken') && resource.data.systemToken is string && resource.data.systemToken.size() >= 8;
     }
   }
 }

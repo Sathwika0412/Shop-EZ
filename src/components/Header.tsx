@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
 import { ShoppingCart, Sparkles, User, LogOut, ShieldAlert, Heart, RefreshCw } from 'lucide-react';
+import { LoginModal } from './LoginModal';
 
 interface HeaderProps {
   onCartToggle: () => void;
@@ -16,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   showDashboard
 }) => {
   const { user, cart, loginWithGoogle, loginAnonymously, logout, isAdminUser, setAdminStatus, discountPercent } = useShop();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -126,16 +128,11 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={loginWithGoogle}
-                  className="px-4 py-2 bg-amber-500 text-stone-950 font-bold hover:bg-amber-400 rounded-full text-xs transition-all tracking-wide shadow-md cursor-pointer"
+                  onClick={() => setIsLoginOpen(true)}
+                  className="px-4 py-2 bg-amber-500 text-stone-950 font-bold hover:bg-amber-400 rounded-full text-xs transition-all tracking-wide shadow-md cursor-pointer flex items-center space-x-1"
                 >
-                  Login
-                </button>
-                <button
-                  onClick={loginAnonymously}
-                  className="px-3.5 py-2 bg-stone-800 text-stone-300 hover:text-white rounded-full text-xs font-medium transition-all cursor-pointer"
-                >
-                  Guest
+                  <User className="w-3.5 h-3.5" />
+                  <span>Sign In</span>
                 </button>
               </div>
             )}
@@ -144,6 +141,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         </div>
       </div>
+
+      {/* Auth & Simulation Modal */}
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </header>
   );
 };
